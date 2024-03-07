@@ -5,30 +5,36 @@ int signal02 = 0;
 float Pk = 8.3;
 class Motor{
 public:
+int pin1;
+int pin2;
+int pins;
   Motor(){
-    int p1;
-    int p2;
-    int pspd;
+    pin1 = 12;
+    pin2 = 13;
+    pins = 11;
   }
-  Motor(int p1, int p2, int pspd){
-    pinMode(p1, OUTPUT);
-    pinMode(p2, OUTPUT);
-    pinMode(pspd, OUTPUT);
+  Motor(int p1, int p2, int ps){
+    pin1 = p1;
+    pin2 = p2;
+    pins = ps;
+    pinMode(pin1, OUTPUT);
+    pinMode(pin2, OUTPUT);
+    pinMode(pins, OUTPUT);
     }
-  void movee (int pin1, int pin2, int pins, int s1, int s2){
-    if (225-(Pk * (s1 - s2)) > 0){
-      digitalWrite(pin1,HIGH);
-      digitalWrite(pin2,LOW);
-      analogWrite(pins, 225-(Pk * (s1 - s2)));
-    } else{  
+  void speedset(int spd){
+    if (spd > 0){
       digitalWrite(pin1, 1);
       digitalWrite(pin2, 0);
-      analogWrite(pins, 225-(Pk * (s1 - s2)));
+      analogWrite(pins, spd);
+    } else{  
+      digitalWrite(pin1, 0);
+      digitalWrite(pin2, 1);
+      analogWrite(pins, abs(spd));
       }
-    }
+    } 
   };
-Motor l_motor;
-Motor r_motor;
+Motor l_motor(12, 13, 11);
+Motor r_motor(4, 5, 3);
 
 void infoaboutroboy (int pk, int si1,int si2){
   Serial.print('\t');
@@ -51,9 +57,7 @@ void setup() {
 }
 void loop() {
   // put your main code here, to run repeatedly:
-  signal1 = analogRead(A1) - signal01;
-  signal2 = analogRead(A0) - signal02;
-  l_motor.movee(12, 13, 11, signal2, signal1);
-  r_motor.movee(4, 5, 3, signal1, signal2);
+  l_motor.speedset(-250);
+  r_motor.speedset(-250);
   infoaboutroboy(Pk, signal1, signal2);
 }
