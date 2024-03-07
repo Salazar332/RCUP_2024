@@ -6,24 +6,24 @@ float Pk = 8.3;
 class Motor{
 public:
   Motor(){
-    int r1 = 12;
-    int r2 = 13;
-    int rspd = 11;
+    int p1;
+    int p2;
+    int pspd;
   }
-  Motor(int r1, int r2, int rspd){
-    pinMode(r1, OUTPUT);
-    pinMode(r2, OUTPUT);
-    pinMode(rspd, OUTPUT);
+  Motor(int p1, int p2, int pspd){
+    pinMode(p1, OUTPUT);
+    pinMode(p2, OUTPUT);
+    pinMode(pspd, OUTPUT);
     }
-  void movee (int numr1,int numr2,int numrE, int s1, int s2){
+  void movee (int pin1, int pin2, int pins, int s1, int s2){
     if (225-(Pk * (s1 - s2)) > 0){
-      digitalWrite(numr1,HIGH);
-      digitalWrite(numr2,LOW);
-      analogWrite(numrE, 225-(Pk * (s1 - s2)));
+      digitalWrite(pin1,HIGH);
+      digitalWrite(pin2,LOW);
+      analogWrite(pins, 225-(Pk * (s1 - s2)));
     } else{  
-      digitalWrite(numr1,LOW);
-      digitalWrite(numr2,HIGH);
-      analogWrite(numrE, 225-(Pk * (s1 - s2)));
+      digitalWrite(pin1, 1);
+      digitalWrite(pin2, 0);
+      analogWrite(pins, 225-(Pk * (s1 - s2)));
       }
     }
   };
@@ -49,12 +49,11 @@ void setup() {
   signal02 = analogRead(A0);
 
 }
-
 void loop() {
   // put your main code here, to run repeatedly:
   signal1 = analogRead(A1) - signal01;
   signal2 = analogRead(A0) - signal02;
-  l_motor.movee(4, 5, 3, signal1, signal2);
-  r_motor.movee(12, 13, 11, signal1, signal2);
+  l_motor.movee(12, 13, 11, signal2, signal1);
+  r_motor.movee(4, 5, 3, signal1, signal2);
   infoaboutroboy(Pk, signal1, signal2);
 }
