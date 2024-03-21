@@ -1,7 +1,9 @@
-int spd = 0;
+int spd1 = 0;
+int spd2 = 0;
 int signal01 = 0;
 int signal02 = 0;
-float Pk = 8.3;
+float Pk1 = 3.23;
+float Pk2 = 3;
 class Motor{
 public:
 int pin1;
@@ -45,7 +47,7 @@ int signalpin;
   }
 
   int findsignal(){
-    return (analogRead(signalpin) - signalFirst);   
+    return abs(analogRead(signalpin) - signalFirst);   
   }
   void init(){
     signalFirst = analogRead(signalpin);   
@@ -56,17 +58,43 @@ lightsensor signal2(A1);
 lightsensor signal3(A2);
 lightsensor signal4(A3);
 
-void infoaboutroboy (int pk, int si1,int si2){
-  Serial.print('\t');
-  Serial.print(200+(Pk * (si1 - si2)));
-  Serial.print('\t');
-  Serial.print(200-(Pk * (si1 - si2)));
-  Serial.print('\t');
-  Serial.print(si1);
-  Serial.print('\t');
-  Serial.print(si2);
-  Serial.print('\n');
-}
+class Distanter{
+public:
+int pinEcho;
+int pinTrig;
+int time;
+  Distanter(){
+    pinTrig = 8;
+    pinEcho = 9;
+  }
+  Distanter(int pt, int pe){
+    pinTrig = pt;
+    pinEcho = pe;
+    pinMode(pinTrig, OUTPUT);
+    pinMode(pinEcho, INPUT);
+  }
+  int distant(){
+    digitalWrite(pinTrig, 0);
+    delayMicroseconds(5);
+    digitalWrite(pinTrig, 1);
+    delayMicroseconds(10);
+    digitalWrite(pinTrig, 0);
+    time = pulseIn(pinEcho, 1);
+    return (time/2)/29.1;
+    }
+  };
+Distanter number1(8, 9);
+//void infoaboutroboy (int pk, int si1,int si2){
+  //Serial.print('\t');
+  //Serial.print(200+(Pk1 * (si1 - si2)));
+  //Serial.print('\t');
+  //Serial.print(200-(Pk * (si1 - si2)));
+  //Serial.print('\t');
+  //Serial.print(si1);
+  //Serial.print('\t');
+  //Serial.print(si2);
+  //Serial.print('\n');
+//}
 
 void setup() {
   Serial.begin(9600);
@@ -77,10 +105,9 @@ void setup() {
   // put your setup code here, to run once:
 }
 void loop() {
-
   // put your main code here, to run repeatedly
-  delay(100);
-  spd =(255-(Pk*(signal2.findsignal() - signal3.findsignal())));     
+  spd1 =((Pk1*(signal2.findsignal() - signal3.findsignal()))+(Pk2*(signal1.findsignal() - signal4.findsignal())));
+  // spd2 =(255+(Pk*(signal2.findsignal() - signal3.findsignal())));
   Serial.print(signal1.findsignal());
   Serial.print('\t');
   Serial.print(signal2.findsignal());
@@ -88,12 +115,16 @@ void loop() {
   Serial.print(signal3.findsignal());
   Serial.print('\t');
   Serial.println(signal4.findsignal());
-  if (signal1.findsignal() - signal4.findsignal() < 0){ 
-    l_motor.speedset(spd);
-    r_motor.speedset(spd);
-  }else{
-     l_motor.speedset(0);
-     r_motor.speedset(0);
+  Serial.println(spd1);
+  //Serial.print(number1.distant());
+  //Serial.println();
+  // Serial.println(spd2);     
+  //if (signal4.findsignal() - signal1.findsignal() < 0){ 
+    l_motor.speedset(255 + spd1 );
+    r_motor.speedset(255 - spd1);
+  //}else{
+     //l_motor.speedset(spd);
+     //r_motor.speedset(spd);
 
-  }
+  //}
 }
