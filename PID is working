@@ -1,0 +1,38 @@
+#include <ground_control.h>
+int speed1 = 0;
+int speed2 = 0;
+Motor l_motor(12, 13, 11);
+Motor r_motor(4, 5, 3);
+Light_sensor rf(A0);
+Light_sensor rn(A1);
+Light_sensor ln(A2);
+Light_sensor lf(A3);
+
+PID m_pid(5, 0.01, 15, 100);
+void setup() {
+  rf.init();
+  rn.init();
+  ln.init();
+  lf.init();
+  Serial.begin(9600);
+  pinMode(A0, INPUT);
+  pinMode(A1, INPUT);
+  pinMode(A2, INPUT);
+  pinMode(A3, INPUT);
+}
+
+void loop() {
+//r_motor.Set_speed(255 - m_pid.ID(rn.Get_data() - ln.Get_data()) + m_pid.ID(rf.Get_data() - lf.Get_data()));
+//l_motor.Set_speed(255 + m_pid.ID(rn.Get_data() - ln.Get_data()) + m_pid.ID(rf.Get_data() - lf.Get_data()));
+
+//speed1 = r_motor.Set_speed(255 - m_pid.ID(rn.Get_data() - ln.Get_data()));
+//speed2 = l_motor.Set_speed(255 + m_pid.ID(rn.Get_data() - ln.Get_data()));
+//Serial.print(rn.Get_data());
+//Serial.print('\t');
+//Serial.print(ln.Get_data());
+//Serial.print('\t');
+Serial.println(m_pid.ID(rn.Get_data() - ln.Get_data()));
+r_motor.start_rotation(255 - m_pid.ID(rn.Get_data() - ln.Get_data()));
+l_motor.start_rotation(255 + m_pid.ID(rn.Get_data() - ln.Get_data()));
+}
+
