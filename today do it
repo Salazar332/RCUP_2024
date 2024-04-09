@@ -1,0 +1,40 @@
+
+#include <ground_control.h>
+int speed1 = 0;
+int speed2 = 0;
+Motor l_motor(12, 13, 11);
+Motor r_motor(4, 5, 3);
+Light_sensor rf(A0);
+Light_sensor rn(A1);
+Light_sensor ln(A2);
+Light_sensor lf(A3);
+US distanter1();
+US distanterl();
+PID m_pid(5, 0.01, 15, 100);
+void setup()  {
+ rf.init();
+ rn.init();
+ ln.init();
+ lf.init();
+ Serial.begin(9600);
+ pinMode(A0, INPUT);
+ pinMode(A1, INPUT);
+ pinMode(A2, INPUT);
+ pinMode(A3, INPUT);
+}
+
+void loop() {
+if distanter1.distance() < 15{
+  while (distanterl.distance() > 20)  {
+    l_motor.rotation();
+  }
+  if (distanterl.distance() < 18){
+    l_motor.rotation();
+  }else{
+    r_motor.rotation();
+  }
+}else{  
+  r_motor.start_rotation(255 - m_pid.ID(rn.Get_data() - ln.Get_data()) + m_pid.ID(rf.Get_data() - lf.Get_data()));
+  l_motor.start_rotation(255 + m_pid.ID(rn.Get_data() - ln.Get_data()) + m_pid.ID(rf.Get_data() - lf.Get_data()));
+}
+}
