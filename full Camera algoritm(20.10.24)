@@ -1,0 +1,203 @@
+#include <ground_control.h> // Добавление библиотеки
+#include "TrackingCamDxlUart.h"
+
+TrackingCamDxlUart trackingCam;
+// создание необходимых переменных
+uint8_t n = 0;
+int task = 0;
+int speed2 = 0;
+int djostic1 = 0;
+int s1 = 0;
+int s2 = 0;
+int Cam_triger = 0;
+int s3 = 0;
+int y0_coordinat = 0;
+int y1_coordinat = 0;
+Motor l_motor(12, 13, 11); // Создание Объекта l_motor
+Motor r_motor(4, 5, 3); // Создание Объекта r_motor
+// Создание объектов (датчиков света)
+Light_sensor rf(A0);
+Light_sensor rn(A1);
+Light_sensor ln(A2);
+Light_sensor lf(A3);
+// Создание объектов мериющих расстояние
+US distanter1(10,9);
+US distanter2(7,6);
+// Установка коэффициентов ПИД ригулятора
+PID m_pid(10, 0.0001, 20, 150);
+PID f_pid(30, 0.0001, 38, 150);
+void setup()  {
+ // Функция инициализации датчиков света
+ rf.init();
+ rn.init();
+ ln.init();
+ lf.init();
+ Serial.begin(9600);
+ pinMode(A0, INPUT);
+ pinMode(A1, INPUT);
+ pinMode(A2, INPUT);
+ pinMode(A3, INPUT);
+ 
+  trackingCam.init(51, 2, 115200, 34);
+  Serial.begin(115200);
+  delay(5000); 
+}
+
+void loop() {
+int y_coordinat = 0;
+Serial.print(rn.Get_data());
+Serial.print("    ");
+Serial.print(rf.Get_data());
+Serial.print("    ");
+Serial.print(lf.Get_data());
+Serial.print("    ");
+Serial.print(ln.Get_data());
+Serial.println("    ");
+
+ Serial.println();
+ Serial.print(task);
+ Serial.println();
+if (task == 0){
+  digitalWrite(8 , HIGH);
+  delay(1000);
+  digitalWrite(8 , LOW);
+  if (true){
+    task = 1;
+  }
+}
+if (task == 1){// Задача движения(0)
+  r_motor.start_rotation(255 - ((m_pid.ID(rn.Get_data() - ln.Get_data())) + (f_pid.ID(rf.Get_data() - lf.Get_data()))));//start_rotatio-Функция движения. ID-функция внедрения ПИД регулятора в программу. Get_data-функция считывания данных с датчиков света
+  l_motor.start_rotation(255 + ((m_pid.ID(rn.Get_data() - ln.Get_data())) + (f_pid.ID(rf.Get_data() - lf.Get_data()))));
+  
+  //if (distanter1.distance() < 5){ // distance-функция считывания данных с датчика расстояния
+    //task = 2;
+  //
+  if ((rn.Get_data() > 150) and (ln.Get_data() > 150) and (rf.Get_data() > 150) and (lf.Get_data() > 150)){
+    task = 11;
+  }
+}
+if (task == 11){
+  r_motor.start_rotation(-100);
+  l_motor.start_rotation(-100);
+  delay(600);
+  if(true){ 
+    n = trackingCam.readBlobs(5);
+    if (n == 2){ // distance-функция считывания данных с датчика расстояния
+      //if ((( y1_coordinat = trackingCam.blob[1].cy - 40) > ( y0_coordinat = trackingCam.blob[0].cy)) and (( y1_coordinat = trackingCam.blob[1].cy + 40) > (y0_coordinat = trackingCam.blob[0].cy))){
+      if (abs(( y1_coordinat = trackingCam.blob[1].cy ) - ( y0_coordinat = trackingCam.blob[0].cy))>10){
+        task = 34;
+      }else{ 
+        task = 44;
+      }
+    }  
+    if (n == 1){ // distance-функция считывания данных с датчика расстояния
+      task = 45;
+    } 
+    if (n == 0){ // distance-функция считывания данных с датчика расстояния
+      task = 99;
+    }
+    if (n == 3){ // distance-функция считывания данных с датчика расстояния
+      if (abs(( y1_coordinat = trackingCam.blob[1].cy ) - ( y0_coordinat = trackingCam.blob[2].cy)) < 20){
+        task = 34;
+      }else{ 
+        task = 25;
+      }
+    }
+    if (n == 4){ // distance-функция считывания данных с датчика расстояния
+      task = 25;
+    }  
+  }
+}
+
+if (task == 34){ //Определение положения метки при n = 2
+ Cam_triger = (trackingCam.blob[0].cx);
+if (Cam_triger < 156){
+    task = 32;
+  }
+if ((Cam_triger > 156)){
+    task = 33;
+  }
+  }
+if (task == 32){
+  r_motor.start_rotation(100);
+  l_motor.start_rotation(100);
+  if ((rn.Get_data() > 150) and (ln.Get_data() > 150) and (rf.Get_data() > 150) and (lf.Get_data() > 150)){ 
+  r_motor.start_rotation(-200);
+  l_motor.start_rotation(250);
+  delay(450);
+  n = trackingCam.readBlobs(5);
+  if (n == 0){
+    task = 1;
+  }
+  }
+  }
+if (task == 99){
+  r_motor.start_rotation(200);
+  l_motor.start_rotation(200);
+  delay(500);
+  if(true){
+    task = 1;
+      }
+}
+if (task == 33){
+  r_motor.start_rotation(100);
+  l_motor.start_rotation(100);
+  if ((rn.Get_data() > 150) and (ln.Get_data() > 150) and (rf.Get_data() > 150) and (lf.Get_data() > 150)){
+  l_motor.start_rotation(-200);
+  r_motor.start_rotation(250);
+  delay(450);
+  n = trackingCam.readBlobs(5);
+  if (n == 0){
+    task = 1;
+  }
+  }
+  }
+if (task == 25){
+  r_motor.start_rotation(150);
+  l_motor.start_rotation(150);
+  if ((rn.Get_data() > 150) and (ln.Get_data() > 150) and (rf.Get_data() > 150) and (lf.Get_data() > 150)){
+    l_motor.start_rotation(-200);
+    r_motor.start_rotation(200);
+    delay(1100);
+    if(true){ 
+      task = 26;
+  }
+  }
+}
+if (task == 26){
+  l_motor.start_rotation(-250);
+  r_motor.start_rotation(250);
+  if (rn.Get_data() > 150){
+    task = 1;
+  }
+}
+if (task == 44){
+  r_motor.start_rotation(100);
+  l_motor.start_rotation(100);
+  if ((rn.Get_data() > 150) and (ln.Get_data() > 150) and (rf.Get_data() > 150) and (lf.Get_data() > 150)){
+    if ((n = trackingCam.readBlobs(5)) == 0){
+      task = 25;
+    }else{
+      task = 99;
+    }
+  }
+}
+if (task == 45){
+  r_motor.start_rotation(100);
+  l_motor.start_rotation(100);
+  if ((rn.Get_data() > 150) and (ln.Get_data() > 150) and (rf.Get_data() > 150) and (lf.Get_data() > 150)){
+    if ((n = trackingCam.readBlobs(5)) == 0){
+      task = 34;
+    }else{
+      task = 99;
+    }
+  }
+}
+  n = trackingCam.readBlobs(5);
+  // Serial.print(n);
+ //Serial.println();
+ //Serial.print(task);
+ //Serial.println();
+  //Serial.print(trackingCam.blob[0].cx, DEC);
+ //Serial.println();
+}
